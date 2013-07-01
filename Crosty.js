@@ -5,33 +5,87 @@ Crosty = {
 	
 	App : function(div_id){
 		this.div = document.getElementById(div_id);
-		this.canvas = document.createElement("canvas");
-		this.div.appendChild(this.canvas);
+		this.scenes = [];
+		
+		this.add_scene = function(scene){
+			this.div.appendChild(scene.canvas);
+			scene.set_size(this.div.offsetWidth, this.div.offsetHeight);
+			this.scenes.push(scene);
+		};
+		
+		this.set_active_scene = function(scene){
+			if(this.active_scene){
+				this.active_scene.active = false;
+				this.active_scene.hide();
+			}
+			this.active_scene = scene;
+			scene.active = true;
+			scene.show();
+		};
+		
+		this.run = function(){
+			that = this;
+			window.setInterval(function(){
+				that.active_scene.update()
+			}, 1);
+		};
 	},
 	
 	/* Una aplicacion tiene muchas escenas.
 	 * */
 	Scene : function(){
+		
+		this.active = false;
+		
+		this.canvas = document.createElement("canvas");
+		this.canvas.style.display = "none";
+		this.context = this.canvas.getContext("2d");
+		
 		this.shapes = [];
 		
 		this.add_shape = function(shape){
+			shape.scene = this;
+			shape.context = this.context;
 			this.shapes.push(shape);
 		};
 		
+		this.clear_scene = function(){
+			this.context.clearRect(0, 0, this.width, this.height);
+		};
+		
+		this.set_size = function(w,h){
+			this.canvas.width = w;
+			this.canvas.height = h;
+			this.width = w;
+			this.height = h;
+		};
+		
+		
 		this.update = function(){
+			this.clear_scene();
 			for(var i in this.shapes){
 				this.shapes[i].update();
 			}
 		};
+		
+		this.show = function(){
+			this.canvas.style.display = "block";
+		};
+		
+		this.hide = function(){
+			this.canvas.style.display = "none";
+		};
 	},
 	
-	/* Crosty me deja dibujar formas. Una forma tiene entre otros atributos
+	/* Crosty me deja dibujar formas. Una forma tiene, entre otros atributos,
 	 * una imagen asociada. 
 	 * */
 	Shape : function(ops){
-		this.width = ops.width || 0;
-		this.height = ops.height || ops.width || 0;
-		this.img = Crosty.Image(ops.img || null);
+		this.img = new Crosty.Image(ops.img || null);
+		this.width = ops.width || this.img.width || 0;
+		this.height = ops.height || this.img.width || ops.width || 0;
+
+		this.update = ops.update;
 	},
 	
 	
@@ -43,7 +97,10 @@ Crosty = {
 	Image : function(image){
 		if(typeof(image) =="string"){
 			this.url = image;
-			this.dom_img = new Image(image);
+			this.dom_img = new Image();
+			this.dom_img.src = image;
+			this.width = this.dom_img.width;
+			this.height = this.dom_img.height;
 		}
 	}
 }
@@ -55,14 +112,29 @@ Crosty.Tests = {
 		sc.add_shape(new Crosty.Shape({}));
 	},
 	
-	test_create_canvas : function(){
-		var a = new Crosty.App("my_game");
-		console.log(a);
+	test_create_app : function(){
+		var app = new Crosty.App("my_game");
+		var sc = new Crosty.Scene();
+		sc.clear_scene = function(){};
+		sc.add_shape(new Crosty.Shape({
+			
+			img : "http://images1.wikia.nocookie.net/__cb20121123154157/imotwom/images/d/d4/Clever_Monkey.png",
+			
+			update : function(){
+				this.context.drawImage(
+					this.img.dom_img,
+					Math.random() * this.scene.width,
+					Math.random() * this.scene.height
+				);
+			}
+		}));
+		app.add_scene(sc);
+		app.set_active_scene(sc);
+		app.run();
 	},
 	
 	test_create_shape : function(){
 		var s = new Crosty.Shape({});
-		console.log("test_create_shape",s);
 	},
 	
 	run : function(){
