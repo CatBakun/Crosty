@@ -3,6 +3,8 @@ Crosty = {
 	//para llevar a cabo el flujo de ejecucion de un juego. 
 	
 	
+	/* La aplicacion se incrusta en un div.
+	 * */
 	App : function(div_id){
 		this.div = document.getElementById(div_id);
 		this.scenes = [];
