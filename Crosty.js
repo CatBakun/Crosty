@@ -4,6 +4,8 @@ Crosty = {
 	
 	
 	App : function(div_id){
+		var that = this;
+		
 		this.div = document.getElementById(div_id);
 		this.scenes = [];
 		
@@ -29,6 +31,7 @@ Crosty = {
 				that.active_scene.update()
 			}, 1);
 		};
+		
 	},
 	
 	/* Una aplicacion tiene muchas escenas.
@@ -81,29 +84,27 @@ Crosty = {
 	 * una imagen asociada. 
 	 * */
 	Shape : function(ops){
-		this.img = new Crosty.Image(ops.img || null);
-		this.width = ops.width || this.img.width || 0;
-		this.height = ops.height || this.img.width || ops.width || 0;
-
+		this.x = ops.x;
+		this.y = ops.y;
+		this.width = ops.width || 0;
+		this.height = ops.height || ops.width || 0;
 		this.update = ops.update;
 	},
-	
-	
-	
 	
 	/* Crosty tiene un tipo de imagen propio que es diferente al del DOM
 	 * porque..
 	 * */
-	Image : function(image){
-		if(typeof(image) =="string"){
-			this.url = image;
-			this.dom_img = new Image();
-			this.dom_img.src = image;
-			this.width = this.dom_img.width;
-			this.height = this.dom_img.height;
-		}
+	Image : function(ops){
+		Crosty.Shape.call(this, ops);
+		this.url = ops.image.src;
+		this.dom_img = ops.image;
+		this.width = this.dom_img.width;
+		this.height = this.dom_img.height;
+		
 	}
 }
+var LOSMONOS = [];
+var MUERTOS = 0;
 
 Crosty.Tests = {
 	
@@ -116,18 +117,31 @@ Crosty.Tests = {
 		var app = new Crosty.App("my_game");
 		var sc = new Crosty.Scene();
 		sc.clear_scene = function(){};
-		sc.add_shape(new Crosty.Shape({
-			
-			img : "http://images1.wikia.nocookie.net/__cb20121123154157/imotwom/images/d/d4/Clever_Monkey.png",
-			
-			update : function(){
-				this.context.drawImage(
-					this.img.dom_img,
-					Math.random() * this.scene.width,
-					Math.random() * this.scene.height
-				);
-			}
-		}));
+		LOSMONOS = sc.shapes;
+		var monkey = document.createElement("img");
+		monkey.src = "http://images1.wikia.nocookie.net/__cb20121123154157/imotwom/images/d/d4/Clever_Monkey.png";
+		window.setInterval(function(){
+			sc.add_shape(new Crosty.Image({
+				
+				x : Math.random() * sc.width,
+				y : Math.random() * sc.height,
+				
+				image : monkey,
+				
+				update : function(){
+					if(this.y > this.scene.height){
+						delete this;
+					}else{
+						this.context.drawImage(
+							this.dom_img,
+							this.x,
+							this.y++
+						);
+					}
+					
+				}
+			}));
+		},1);
 		app.add_scene(sc);
 		app.set_active_scene(sc);
 		app.run();
