@@ -101,7 +101,17 @@ Crosty = {
 		this.width = this.dom_img.width;
 		this.height = this.dom_img.height;
 		
-	}
+	},
+	
+	Text : function(ops){
+		Crosty.Shape.call(this, ops);
+		this.text = ops.text || "sadasdsad";
+		
+		this.draw = function(x,y){
+			this.context.font="30px Arial";
+			this.context.fillText(this.text,x || this.x, y || this.y);	
+		};
+	},
 }
 var LOSMONOS = [];
 var MUERTOS = 0;
@@ -142,6 +152,12 @@ Crosty.Tests = {
 				}
 			}));
 		},1);
+		sc.add_shape(new Crosty.Text({
+			text:"Longcat vs Monkey",
+			update : function(){
+				this.draw();
+			}
+		}));
 		app.add_scene(sc);
 		app.set_active_scene(sc);
 		app.run();
